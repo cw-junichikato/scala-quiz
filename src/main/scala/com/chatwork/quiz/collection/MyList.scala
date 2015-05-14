@@ -99,14 +99,13 @@ sealed trait MyList[+A] {
     def startsWith0(l: MyList[A], prefix: MyList[B]): Boolean = (l, prefix) match {
       case (_, MyNil) => true
       case (MyCons(h, t), MyCons(h2, t2)) if h == h2 => startsWith0(t, t2)
-      case (MyFiltered(f, p), MyFiltered(f2, p2)) =>
-        startsWith0(f.filter(p), f2.filter(p2.asInstanceOf[B => Boolean]))
+      case (l@MyFiltered(_, _),r@MyFiltered(_, _)) => startsWith0(l.toList, r.toList)
       case _ => false
     }
     startsWith0(this, prefix)
   }
 
-  def toList: MyList[A] = this match {
+  def toList[B >: A]: MyList[B] = this match {
     case MyNil => MyNil
     case MyFiltered(l, p) => l.filter(p)
     case _ => this
