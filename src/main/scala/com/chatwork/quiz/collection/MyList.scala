@@ -15,9 +15,12 @@ sealed trait MyList[+A] {
   final def foldLeft[B](z: B)(f: (B, A) => B): B = this match {
     case MyNil => z
     case MyCons(h, t) => t.foldLeft(f(z, h))(f)
-    case MyFiltered(l, filter) => l.filter(filter).foldLeft(z)(f)
+    case MyFiltered(l, p) =>
+      l.foldLeft(z) { (b, a) =>
+        if (p(a)) f(b, a)
+        else b
+      }
   }
-
 
   // 難易度選択制
   // Normal: 条件 - 特にありません、気の向くままに実装してください。
@@ -30,8 +33,9 @@ sealed trait MyList[+A] {
   def ::[B >: A](b: B): MyList[B] = this match {
     case MyNil => MyCons(b, MyNil)
     case list@MyCons(_, _) => MyCons(b, list)
-    case MyFiltered(l, filter) => MyFiltered[B](b :: l, filter.asInstanceOf[B => Boolean])
+    case MyFiltered(l, p) => MyFiltered[B](b :: l, p.asInstanceOf[B => Boolean])
   }
+
   // scalastyle:on
 
   // Normal
@@ -42,7 +46,7 @@ sealed trait MyList[+A] {
   def ++[B >: A](b: MyList[B]): MyList[B] = this match {
     case MyNil => b
     case MyCons(h, t) => MyCons(h, t ++ b)
-    case MyFiltered(l, filter) => MyFiltered[B](l ++ b, filter.asInstanceOf[B => Boolean])
+    case MyFiltered(l, p) => MyFiltered[B](l ++ b, p.asInstanceOf[B => Boolean])
   }
 
   // scalastyle:on
@@ -51,9 +55,9 @@ sealed trait MyList[+A] {
   def map[B](f: A => B): MyList[B] = this match {
     case MyNil => MyNil
     case MyCons(h, t) => MyCons(f(h), t.map(f))
-    case MyFiltered(l, filter) =>
+    case MyFiltered(l, p) =>
       l.foldRight[MyList[B]](MyNil) { (x, r) =>
-        if (filter(x)) f(x) :: r
+        if (p(x)) f(x) :: r
         else r
       }
   }
@@ -62,9 +66,9 @@ sealed trait MyList[+A] {
   def flatMap[B](f: A => MyList[B]): MyList[B] = this match {
     case MyNil => MyNil
     case MyCons(h, t) => f(h) ++ t.flatMap(f)
-    case MyFiltered(l, filter) =>
+    case MyFiltered(l, p) =>
       l.foldRight[MyList[B]](MyNil) { (x, r) =>
-        if (filter(x)) f(x) ++ r
+        if (p(x)) f(x) ++ r
         else r
       }
   }
@@ -78,7 +82,7 @@ sealed trait MyList[+A] {
   def withFilter(f: A => Boolean): MyList[A] = this match {
     case MyNil => MyNil
     case MyCons(h, t) => MyFiltered(this, f)
-    case MyFiltered(l, f2) => MyFiltered[A](l, { x => f(x) && f2(x) })
+    case MyFiltered(l, p) => MyFiltered[A](l, { x => f(x) && p(x) })
   }
 
   // Normal
@@ -86,7 +90,7 @@ sealed trait MyList[+A] {
   final def find(f: A => Boolean): MyOption[A] = this match {
     case MyNil => MyNone
     case MyCons(h, t) => if (f(h)) MySome(h) else t.find(f)
-    case MyFiltered(l, filter) => l.filter(filter).find(f)
+    case MyFiltered(l, p) => l.find{ e => p(e) && f(e) }
   }
 
   // Normal
@@ -95,8 +99,8 @@ sealed trait MyList[+A] {
     def startsWith0(l: MyList[A], prefix: MyList[B]): Boolean = (l, prefix) match {
       case (_, MyNil) => true
       case (MyCons(h, t), MyCons(h2, t2)) if h == h2 => startsWith0(t, t2)
-      case (MyFiltered(f, filter), MyFiltered(f2, filter2)) =>
-        startsWith0(f.filter(filter), f2.filter(filter2.asInstanceOf[B => Boolean]))
+      case (MyFiltered(f, p), MyFiltered(f2, p2)) =>
+        startsWith0(f.filter(p), f2.filter(p2.asInstanceOf[B => Boolean]))
       case _ => false
     }
     startsWith0(this, prefix)
