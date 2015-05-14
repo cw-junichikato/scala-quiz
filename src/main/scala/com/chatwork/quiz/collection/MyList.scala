@@ -82,7 +82,7 @@ sealed trait MyList[+A] {
   def withFilter(f: A => Boolean): MyList[A] = this match {
     case MyNil => MyNil
     case MyCons(h, t) => MyFiltered(this, f)
-    case MyFiltered(l, p) => MyFiltered[A](l, { x => f(x) && p(x) })
+    case MyFiltered(l, p) => MyFiltered[A](l, { x => p(x) && f(x) })
   }
 
   // Normal
