@@ -1,6 +1,6 @@
 package com.chatwork.quiz.collection
 
-import com.chatwork.quiz.{MySome, MyNone}
+import com.chatwork.quiz.{MyNone, MySome}
 import org.scalatest.{FunSpec, Matchers}
 
 class MyListSpec extends FunSpec with Matchers {
@@ -14,13 +14,17 @@ class MyListSpec extends FunSpec with Matchers {
 
   describe("MyList#foldLeft") {
     it("should apply an operator a start value and all elements from left to right") {
-      MyList("H", "e", "l", "l", "o").foldLeft("Say ") { _ + _ } shouldEqual "Say Hello"
+      MyList("H", "e", "l", "l", "o").foldLeft("Say ") {
+        _ + _
+      } shouldEqual "Say Hello"
     }
   }
 
   describe("MyList#foldRight") {
     it("should apply an operator a start value and all elements from right to left") {
-      MyList("H", "e", "l", "l", "o").foldRight(" World") { _ + _ } shouldEqual "Hello World"
+      MyList("H", "e", "l", "l", "o").foldRight(" World") {
+        _ + _
+      } shouldEqual "Hello World"
     }
   }
 
@@ -60,6 +64,23 @@ class MyListSpec extends FunSpec with Matchers {
     }
   }
 
+  describe("MyList#withFilter") {
+    it("should return a new MyList containing elements filtered by the given predicate") {
+      MyList(1, 2, 3, 4, 5).withFilter(_ % 2 != 0).foldLeft(0)(_ + _) shouldEqual 9
+      MyList(1, 2, 3, 4, 5).withFilter(_ % 2 != 0).foldRight(0)(_ + _) shouldEqual 9
+      (0 :: MyList(1, 2, 3, 4, 5).withFilter(_ > 3)).map(_ * 2) shouldEqual MyList(8, 10)
+      MyList(1, 2, 3, 4).withFilter(_ > 2).reverse shouldEqual MyList(4, 3)
+      (MyList(1, 2, 3, 4, 5).withFilter(_ > 3) ++ MyNil).map(_ * 2) shouldEqual MyList(8, 10)
+      MyList(1, 2, 3, 4, 5).withFilter(_ > 3).map(_ * 2) shouldEqual MyList(8, 10)
+      MyList(MyList(1, 2), MyList(3, 4, 5)).flatMap(e => e.withFilter(_ % 2 == 0)).toList shouldEqual MyList(2, 4)
+      MyList(1, 2, 3, 4, 5).withFilter(_ > 3).filter(_ >= 5) shouldEqual MyList(5)
+      MyList(1, 2, 3, 4, 5).withFilter(_ > 3).find(_ == 5) shouldEqual MySome(5)
+      MyList(1, 2, 3, 4, 5).withFilter(_ > 3).length shouldEqual 2
+      MyList(1, 2, 3, 4, 5).withFilter(_ > 2).withFilter(_ % 2 != 0).map(_ * 2) shouldEqual MyList(6, 10)
+      (MyList(1, 2, 3, 4).withFilter(_ > 1) ++ MyList(5, 6, 7).withFilter(_ % 2 == 0)).map(_ * 2) shouldEqual MyList(4, 6, 8, 12)
+    }
+  }
+
   describe("MyList#find") {
     it("should return the first element of the sequence satisfying a predicate") {
       MyList(1, 2, 3, 4, 5).find(_ == 1) shouldEqual MySome(1)
@@ -74,8 +95,8 @@ class MyListSpec extends FunSpec with Matchers {
         number <- MyList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
         if suit == "Diamond"
       } yield {
-        (suit, number)
-      }).length shouldBe 13
+          (suit, number)
+        }).length shouldBe 13
     }
   }
 

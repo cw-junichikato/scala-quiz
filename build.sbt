@@ -4,7 +4,7 @@ name := "sandbox"
 
 version := "1.0"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.6"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-deprecation")
 
