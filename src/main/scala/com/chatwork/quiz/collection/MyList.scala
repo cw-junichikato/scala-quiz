@@ -16,9 +16,9 @@ sealed trait MyList[+A] {
     case MyNil => z
     case MyCons(h, t) => t.foldLeft(f(z, h))(f)
     case MyFiltered(l, p) =>
-      l.foldLeft(z) { (b, a) =>
-        if (p(a)) f(b, a)
-        else b
+      l.foldLeft(z) { (r, x) =>
+        if (p(x)) f(r, x)
+        else r
       }
   }
 
@@ -90,7 +90,7 @@ sealed trait MyList[+A] {
   final def find(f: A => Boolean): MyOption[A] = this match {
     case MyNil => MyNone
     case MyCons(h, t) => if (f(h)) MySome(h) else t.find(f)
-    case MyFiltered(l, p) => l.find{ e => p(e) && f(e) }
+    case MyFiltered(l, p) => l.find { e => p(e) && f(e) }
   }
 
   // Normal
@@ -99,7 +99,9 @@ sealed trait MyList[+A] {
     def startsWith0(l: MyList[A], prefix: MyList[B]): Boolean = (l, prefix) match {
       case (_, MyNil) => true
       case (MyCons(h, t), MyCons(h2, t2)) if h == h2 => startsWith0(t, t2)
-      case (l@MyFiltered(_, _),r@MyFiltered(_, _)) => startsWith0(l.toList, r.toList)
+      case (l@MyCons(h, t), r: MyFiltered[B])  => startsWith0(l, r.toList)
+      case (l: MyFiltered[A], r: MyCons[B])  => startsWith0(l.toList, r)
+      case (l: MyFiltered[A], r: MyFiltered[B])  => startsWith0(l.toList, r.toList)
       case _ => false
     }
     startsWith0(this, prefix)

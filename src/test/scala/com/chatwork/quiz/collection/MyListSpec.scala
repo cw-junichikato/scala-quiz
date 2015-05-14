@@ -64,6 +64,14 @@ class MyListSpec extends FunSpec with Matchers {
     }
   }
 
+  describe("MyList#startsWith") {
+    it("should return boolean value if given elements") {
+      MyList(1, 2, 3, 4, 5).startsWith(MyList(1, 2, 3)) shouldEqual true
+      MyList(1, 2, 3, 4, 5).startsWith(MyList(1, 2, 3).withFilter(_ % 2 == 0)) shouldEqual false
+      MyList(1, 2, 3, 4, 5).startsWith(MyList(1, 2, 3).filter(_ % 2 == 0)) shouldEqual false
+    }
+  }
+
   describe("MyList#withFilter") {
     it("should return a new MyList containing elements filtered by the given predicate") {
       MyList(1, 2, 3, 4, 5).withFilter(_ % 2 != 0).foldLeft(0)(_ + _) shouldEqual 9
